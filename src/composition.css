@@ -1,0 +1,257 @@
+.composition-tools {
+  flex: none;
+  background: #f7f6f2;
+  border-bottom: 1px solid var(--line);
+  max-height: 43vh;
+  overflow: auto;
+}
+.composition-strip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 14px;
+  min-height: 34px;
+}
+.composition-strip button {
+  font-size: 11px;
+  min-height: 25px;
+  border-color: transparent;
+  background: transparent;
+}
+.composition-strip button:first-child {
+  color: var(--ink);
+}
+.composition-strip button[aria-pressed='true'] {
+  background: #dde5e1;
+}
+.history-actions {
+  display: flex;
+  margin-left: auto;
+  border-right: 1px solid var(--line);
+  padding-right: 8px;
+  margin-right: 4px;
+}
+.composition-expanded {
+  padding: 10px 18px 15px;
+  border-top: 1px solid var(--line);
+}
+.command-form > label {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+.command-input {
+  display: flex;
+  gap: 7px;
+}
+.command-input input {
+  flex: 1;
+  min-width: 150px;
+}
+.composition-options {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 9px;
+}
+.composition-options button {
+  background: transparent;
+  border-color: transparent;
+  font-size: 10px;
+}
+.variation-controls,
+.fit-controls {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.variation-controls label,
+.fit-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.variation-controls input {
+  width: 150px;
+}
+.variation-controls select {
+  width: 155px;
+}
+.fit-controls input {
+  width: 100px;
+}
+.fit-controls > span {
+  font-size: 11px;
+  color: var(--muted);
+  align-self: center;
+}
+.command-message {
+  margin-top: 10px;
+  color: #665031;
+  font-size: 11px;
+}
+.command-plan {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  font-size: 11px;
+}
+.command-plan strong {
+  font-weight: 500;
+}
+.command-plan ul {
+  display: flex;
+  gap: 5px 18px;
+  flex-wrap: wrap;
+  padding: 0;
+  margin: 8px 0 12px;
+  list-style: none;
+  font-variant-numeric: tabular-nums;
+}
+.command-plan li {
+  padding-left: 0;
+}
+.comparison-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 18px;
+  border-top: 1px solid var(--line);
+  font-size: 10px;
+  color: var(--muted);
+}
+.comparison-caption button {
+  font-size: 10px;
+  background: transparent;
+  border-color: transparent;
+}
+.publishing-checks {
+  border-top: 1px solid var(--line);
+  padding: 12px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 7px;
+  font-size: 11px;
+}
+.publishing-checks strong {
+  font-weight: 500;
+}
+.publishing-checks button {
+  text-align: left;
+  white-space: normal;
+  font-size: 11px;
+  background: transparent;
+  border-color: transparent;
+  padding: 4px 0;
+}
+.check-scope {
+  color: var(--muted);
+  font-size: 10px;
+}
+.preview-composition {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.baseline-preview,
+.current-preview {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.baseline-preview {
+  border-right: 1px solid #b9c3bd;
+}
+.comparison-label {
+  padding: 5px 14px;
+  font-size: 10px;
+  color: #65746d;
+  background: #e8ece5;
+  border-bottom: 1px solid var(--line);
+}
+.page-guides {
+  position: absolute;
+  pointer-events: none;
+  border: 1px dashed #367a9b99;
+  z-index: 5;
+}
+.page-guides i {
+  position: absolute;
+  inset-block: 0;
+  border-inline: 1px dashed #367a9b77;
+  pointer-events: none;
+}
+dialog:modal {
+  overscroll-behavior: contain;
+}
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+.template-exchange {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.template-exchange > summary {
+  padding: 10px 0;
+  font-size: 11px;
+  color: var(--ink);
+}
+.template-panel {
+  padding: 0 0 12px;
+}
+.template-panel > label {
+  display: block;
+  margin-top: 10px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.template-panel textarea {
+  width: 100%;
+  min-height: 110px;
+  max-height: 240px;
+  resize: vertical;
+  font:
+    11px/1.6 Consolas,
+    monospace;
+  padding: 8px;
+  border: 1px solid #bdc5bd;
+  background: #fffefa;
+  color: #293738;
+  border-radius: 3px;
+  margin-top: 5px;
+}
+.template-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.template-actions button {
+  font-size: 11px;
+}
+.template-saved {
+  display: flex;
+  align-items: end;
+  gap: 7px;
+  margin-top: 10px;
+}
+.template-saved label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.template-saved select {
+  min-width: 180px;
+}

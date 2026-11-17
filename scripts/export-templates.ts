@@ -1,0 +1,10 @@
+import {writeFileSync,mkdirSync} from 'node:fs';
+import {z} from 'zod';
+import {templateSchema,blankTemplate,llmInstructions} from '../src/templates';
+import {presets} from '../src/config';
+mkdirSync('templates',{recursive:true});
+mkdirSync('verification',{recursive:true});
+writeFileSync('verification/preset-definitions.json',JSON.stringify(presets,null,2)+'\n');
+writeFileSync('templates/folio-layout-template.schema.json',JSON.stringify(z.toJSONSchema(templateSchema),null,2)+'\n');
+writeFileSync('templates/folio-layout-template.json',JSON.stringify(blankTemplate,null,2)+'\n');
+writeFileSync('templates/LLM-INSTRUCTIONS.md','# Folio external-model instructions\n\n'+llmInstructions+'\n\nValidate output against `folio-layout-template.schema.json`. Paste or open the returned JSON in Folio, review the changes, then apply. Save named templates in Folio or export a JSON file.\n');

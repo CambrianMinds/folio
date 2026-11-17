@@ -1,0 +1,214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "format": {
+      "type": "string",
+      "const": "folio.layout-template"
+    },
+    "version": {
+      "type": "number",
+      "const": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "requirements": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "clarification": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "changes": {
+      "type": "object",
+      "properties": {
+        "paper": {
+          "type": "string",
+          "enum": [
+            "Letter",
+            "A4",
+            "Legal",
+            "A5",
+            "Custom"
+          ]
+        },
+        "width": {
+          "type": "number",
+          "minimum": 144,
+          "maximum": 2880
+        },
+        "height": {
+          "type": "number",
+          "minimum": 144,
+          "maximum": 2880
+        },
+        "landscape": {
+          "type": "boolean"
+        },
+        "units": {
+          "type": "string",
+          "enum": [
+            "in",
+            "mm",
+            "pt"
+          ]
+        },
+        "marginTop": {
+          "type": "number",
+          "minimum": 12,
+          "maximum": 720
+        },
+        "marginBottom": {
+          "type": "number",
+          "minimum": 12,
+          "maximum": 720
+        },
+        "marginLeft": {
+          "type": "number",
+          "minimum": 12,
+          "maximum": 720
+        },
+        "marginRight": {
+          "type": "number",
+          "minimum": 12,
+          "maximum": 720
+        },
+        "linkedMargins": {
+          "type": "boolean"
+        },
+        "mirrored": {
+          "type": "boolean"
+        },
+        "background": {
+          "type": "string",
+          "pattern": "^#[\\da-f]{6}$"
+        },
+        "columns": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 6
+        },
+        "gutter": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 144
+        },
+        "rule": {
+          "type": "boolean"
+        },
+        "ruleWidth": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 6
+        },
+        "ruleColor": {
+          "type": "string",
+          "pattern": "^#[\\da-f]{6}$"
+        },
+        "ruleInsetTop": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 720
+        },
+        "ruleInsetBottom": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 720
+        },
+        "bodyFont": {
+          "type": "string"
+        },
+        "headingFont": {
+          "type": "string"
+        },
+        "fontSize": {
+          "type": "number",
+          "minimum": 6,
+          "maximum": 48
+        },
+        "headingScale": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 2
+        },
+        "leading": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 2
+        },
+        "paragraphSpacing": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 72
+        },
+        "indent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 72
+        },
+        "justify": {
+          "type": "boolean"
+        },
+        "textColor": {
+          "type": "string",
+          "pattern": "^#[\\da-f]{6}$"
+        },
+        "headingColor": {
+          "type": "string",
+          "pattern": "^#[\\da-f]{6}$"
+        },
+        "linkColor": {
+          "type": "string",
+          "pattern": "^#[\\da-f]{6}$"
+        },
+        "pageNumbers": {
+          "type": "boolean"
+        },
+        "header": {
+          "type": "string"
+        },
+        "footer": {
+          "type": "string"
+        },
+        "toc": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "fullWidthTitle": {
+          "type": "boolean"
+        },
+        "codeSize": {
+          "type": "number",
+          "minimum": 5,
+          "maximum": 24
+        },
+        "figureSpacing": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 72
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "format",
+    "version",
+    "name",
+    "changes"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,463 @@
+.workspace {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+.pane-heading {
+  height: 43px;
+  min-height: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  padding: 0 17px;
+  background: #f7f6f2;
+  color: #3e4a4f;
+}
+.pane-heading > span {
+  font-size: 10px;
+  color: var(--muted);
+}
+.editor-pane {
+  flex: 0 0 var(--editor-width);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+}
+.editor-actions {
+  display: flex;
+  font-size: 10px;
+  gap: 2px;
+}
+.editor-pane .cm-theme {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+.cm-editor {
+  height: 100%;
+}
+.cm-scroller {
+  overflow: auto !important;
+  line-height: 1.8;
+}
+.cm-content {
+  caret-color: #304a57;
+}
+.editor-foot {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 16px;
+  font-size: 10px;
+  color: #747b7b;
+  border-top: 1px solid #e3e4de;
+  min-height: 29px;
+}
+.splitter {
+  width: 5px;
+  flex: 0 0 5px;
+  cursor: col-resize;
+  background: #eeefea;
+  border-inline: 1px solid var(--line);
+  touch-action: none;
+}
+.splitter:hover {
+  background: #c5d0d1;
+}
+.preview {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 140px;
+  background: #dfe1dc;
+}
+.preview-toolbar {
+  height: 43px;
+  min-height: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 13px;
+  background: #eeefea;
+  border-bottom: 1px solid #d0d3cd;
+  font-size: 10px;
+  gap: 8px;
+}
+.page-counter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.page-counter input {
+  width: 39px;
+  height: 24px;
+  min-height: 24px;
+  padding: 2px 3px;
+  border-color: transparent;
+  background: transparent;
+  text-align: center;
+  font-size: 10px;
+  -moz-appearance: textfield;
+}
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.zoom-controls button {
+  border: 0;
+  background: transparent;
+  padding: 3px 6px;
+  min-width: 24px;
+  min-height: 24px;
+  font-size: 11px;
+}
+.zoom-controls button[aria-pressed='true'] {
+  background: #d6dedb;
+}
+.zoom-controls select {
+  width: 80px;
+  font-size: 10px;
+  background: transparent;
+  border-color: transparent;
+  min-height: 24px;
+}
+.zoom-label {
+  display: flex;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+}
+.zoom-label input {
+  border: 0;
+  width: 37px;
+  background: transparent;
+  text-align: right;
+  font-size: 10px;
+  padding: 0;
+  min-height: 24px;
+  appearance: textfield;
+}
+.zoom-label input::-webkit-inner-spin-button {
+  appearance: none;
+}
+.page-workspace {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  position: relative;
+  scrollbar-gutter: stable;
+  padding: 27px 26px 40px;
+}
+.pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 auto;
+  gap: 26px;
+}
+.pages.spread {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: 26px 20px;
+}
+.pdf-page {
+  position: relative;
+  flex-shrink: 0;
+  outline: 1px solid #c3c8c2;
+  background: white;
+}
+.pdf-page canvas {
+  display: block;
+}
+.pdf-page .textLayer {
+  inset: 0;
+}
+.pdf-link {
+  position: absolute;
+  z-index: 3;
+  cursor: pointer;
+}
+.pdf-link:hover {
+  background: #35628b18;
+}
+.page-folio {
+  position: absolute;
+  top: 100%;
+  padding-top: 5px;
+  right: 0;
+  font-size: 9px;
+  color: #77807b;
+}
+.empty-preview {
+  height: 100%;
+  min-height: 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #79847e;
+  gap: 16px;
+  font-size: 12px;
+}
+.paper-mark {
+  width: 100px;
+  height: 135px;
+  border: 1px solid #bcc5bc;
+  background: #efefe9;
+  display: grid;
+  place-items: center;
+  font:
+    50px Georgia,
+    serif;
+  color: #abb6ac;
+}
+.inspector {
+  flex: 0 0 var(--inspector-width);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--panel);
+}
+.inspector-scroll {
+  overflow: auto;
+  flex: 1;
+  scrollbar-width: thin;
+}
+.preset-section {
+  padding: 16px 18px 13px;
+  border-bottom: 1px solid var(--line);
+}
+.preset-section select {
+  font-size: 13px;
+  color: var(--ink);
+  height: 33px;
+}
+.preset-actions {
+  display: flex;
+  gap: 5px;
+  margin-top: 7px;
+  flex-wrap: wrap;
+}
+.preset-actions button {
+  border: 0;
+  background: transparent;
+  min-height: 23px;
+  font-size: 10px;
+  padding: 2px 3px;
+  color: #607076;
+}
+.preset-actions button:last-child {
+  margin-left: auto;
+}
+.inspector-scroll > details {
+  border-bottom: 1px solid var(--line);
+}
+.inspector-scroll > details > summary {
+  position: relative;
+  padding: 13px 18px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  min-height: 42px;
+}
+.inspector-scroll > details > summary:after {
+  content: '+';
+  position: absolute;
+  right: 20px;
+  color: #79817e;
+  font-size: 13px;
+  font-weight: 400;
+}
+.inspector-scroll > details[open] > summary:after {
+  content: '−';
+}
+.group {
+  padding: 0 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+}
+.field > label {
+  font-size: 10px;
+  color: #5d686c;
+}
+.field input,
+.field select {
+  min-width: 0;
+  font-size: 12px;
+}
+.two-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 11px;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  min-height: 20px;
+}
+.sub-label {
+  font-size: 10px;
+  color: #637074;
+  margin-top: 2px;
+}
+.segmented {
+  display: flex;
+  border: 1px solid #bfc5c0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.segmented button {
+  border: 0;
+  border-right: 1px solid #c9cec8;
+  border-radius: 0;
+  flex: 1;
+  background: transparent;
+  font-size: 11px;
+  min-height: 28px;
+}
+.segmented button:last-child {
+  border-right: 0;
+}
+.segmented button[aria-pressed='true'] {
+  background: #dde5e1;
+  color: #253e4a;
+}
+.columns button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 35px;
+}
+.column-glyph {
+  display: flex;
+  gap: 2px;
+  height: 15px;
+}
+.column-glyph i {
+  height: 15px;
+  width: 3px;
+  border-top: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  background: currentColor;
+  opacity: 0.5;
+}
+.inspector-foot {
+  padding: 8px 17px;
+  border-top: 1px solid var(--line);
+  font-size: 10px;
+  color: #6f7979;
+  min-height: 29px;
+}
+@media (max-width: 1150px) {
+  .workspace:has(.editor-pane) {
+    --editor-width: 310px;
+  }
+  .toolbar {
+    gap: 16px;
+    padding-inline: 14px;
+  }
+  .pipeline-label {
+    display: none;
+  }
+}
+@media (max-width: 950px) {
+  .document-name {
+    font-size: 11px;
+  }
+  .save-state {
+    display: none;
+  }
+  .toolbar-actions {
+    gap: 2px;
+  }
+  .toolbar-actions > button {
+    padding: 4px 7px;
+  }
+  .pane-toggles {
+    margin-left: 3px;
+    padding-left: 6px;
+  }
+  .preview-toolbar {
+    padding-inline: 7px;
+  }
+  .zoom-controls select {
+    width: 65px;
+  }
+}
+@media (pointer: coarse) {
+  button,
+  input,
+  select,
+  summary {
+    min-height: 36px;
+  }
+}
+.editor-pane,
+.inspector,
+.preview,
+.baseline-preview,
+.current-preview {
+  min-height: 0;
+  min-width: 0;
+}
+.editor-pane > .source-editor {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+.source-editor .cm-editor {
+  height: 100%;
+  min-height: 0;
+}
+.source-editor .cm-scroller {
+  overflow: auto !important;
+  overscroll-behavior: contain;
+}
+.inspector-scroll {
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.page-workspace {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.composition-tools {
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.composition-expanded {
+  min-width: 0;
+}
+.command-plan {
+  overflow-x: auto;
+}
+.template-panel {
+  min-width: 0;
+}
+.template-panel textarea {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.publishing-checks {
+  max-height: 220px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}

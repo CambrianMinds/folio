@@ -1,0 +1,349 @@
+@import url('./workspace.css');
+@import url('./composition.css');
+:root {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #292e31;
+  background: #eeede8;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --ink: #304a57;
+  --panel: #faf9f6;
+  --line: #d5d6d0;
+  --muted: #676d6f;
+  font-size: 12px;
+  color-scheme: light;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+input,
+select,
+summary {
+  font: inherit;
+}
+button,
+summary,
+select {
+  cursor: pointer;
+}
+button,
+input,
+select {
+  min-height: 28px;
+  border: 1px solid #bfc2bd;
+  border-radius: 3px;
+  color: inherit;
+  background: #fffefa;
+}
+button {
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+button:hover {
+  background: #e7eae5;
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible,
+[role='separator']:focus-visible {
+  outline: 2px solid #41677c;
+  outline-offset: 2px;
+}
+.primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+.primary:hover {
+  background: #223e4d;
+}
+input,
+select {
+  width: 100%;
+  padding: 4px 7px;
+}
+input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+  min-height: 14px;
+  accent-color: var(--ink);
+  margin: 0;
+}
+input[type='color'] {
+  height: 29px;
+  width: 100%;
+  padding: 3px;
+}
+input[type='number'] {
+  font-variant-numeric: tabular-nums;
+}
+h1,
+h2,
+p {
+  margin: 0;
+}
+h2 {
+  font-size: 12px;
+  font-weight: 600;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+kbd {
+  font:
+    10px 'Segoe UI',
+    sans-serif;
+  color: #747b7d;
+  margin-left: auto;
+}
+details > summary {
+  list-style: none;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+.app {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.toolbar {
+  height: 59px;
+  min-height: 59px;
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  padding: 0 20px;
+  background: #f7f6f2;
+  border-bottom: 1px solid var(--line);
+}
+.wordmark {
+  font-family: Georgia, serif;
+  font-size: 29px;
+  font-weight: normal;
+  letter-spacing: -1.3px;
+}
+.wordmark-dot {
+  color: #5b7884;
+}
+.document-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 100px;
+  flex: 1;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.save-state {
+  font-size: 10px;
+  color: var(--muted);
+}
+.save-state.changed {
+  color: #855c2b;
+}
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.toolbar-actions > button:not(.primary) {
+  background: transparent;
+  border-color: transparent;
+}
+.pane-toggles {
+  display: flex;
+  border-left: 1px solid var(--line);
+  margin-left: 10px;
+  padding-left: 14px;
+  gap: 3px;
+}
+.pane-toggles button {
+  background: transparent;
+  border-color: transparent;
+  color: #747a7c;
+}
+.pane-toggles button[aria-pressed='true'] {
+  background: #e6e9e4;
+  color: var(--ink);
+}
+.menu {
+  position: relative;
+}
+.menu > summary {
+  padding: 6px 9px;
+  border-radius: 3px;
+  min-height: 28px;
+}
+.menu[open] > summary,
+.menu > summary:hover {
+  background: #e5e8e2;
+}
+.menu-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 260px;
+  z-index: 20;
+  padding: 5px;
+  background: var(--panel);
+  border: 1px solid #bfc2bd;
+  border-radius: 4px;
+}
+.menu-popover button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 30px;
+}
+.menu-popover button:hover {
+  background: #e6e9e3;
+}
+.menu-label {
+  padding: 12px 10px 5px;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  margin-top: 5px;
+  font-size: 10px;
+}
+.menu-empty {
+  display: block;
+  padding: 8px 10px;
+  color: var(--muted);
+}
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 0 14px;
+  background: #f5f4f0;
+  border-top: 1px solid var(--line);
+  font-size: 10px;
+  color: #596368;
+}
+.status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 100%;
+  background: #647e69;
+}
+.status-dot.working {
+  background: #997f4c;
+}
+.status-notice {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.statusbar button {
+  min-height: 22px;
+  padding: 1px 6px;
+  border-color: transparent;
+  background: transparent;
+  font-size: 10px;
+}
+.pipeline-label {
+  border-left: 1px solid var(--line);
+  padding-left: 12px;
+}
+.error-banner {
+  max-height: 180px;
+  overflow: auto;
+  padding: 12px 18px;
+  border-top: 1px solid #c2a489;
+  background: #f6ede1;
+  display: flex;
+  gap: 20px;
+  align-items: start;
+}
+.error-banner > div {
+  flex: 1;
+}
+.error-banner p {
+  white-space: pre-wrap;
+  margin-top: 4px;
+  font:
+    12px/1.5 'Segoe UI',
+    sans-serif;
+  overflow-wrap: anywhere;
+}
+.warnings {
+  position: relative;
+}
+.warnings > summary {
+  color: #855c2b;
+}
+.warnings > div {
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  width: 350px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 12px;
+  z-index: 20;
+}
+.warnings p + p {
+  margin-top: 8px;
+}
+dialog {
+  border: 1px solid #a9b0ac;
+  border-radius: 5px;
+  background: var(--panel);
+  padding: 24px;
+  width: 390px;
+  color: inherit;
+}
+dialog::backdrop {
+  background: #1b262d66;
+}
+dialog h2 {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+dialog p {
+  line-height: 1.5;
+  color: #596367;
+}
+.dialog-input {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0;
+}
+.dialog-actions {
+  display: flex;
+  gap: 7px;
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+dialog button {
+  min-width: 65px;
+}

@@ -1,0 +1,26 @@
+[package]
+name = "folio"
+version = "0.2.0"
+description = "Local Markdown typesetting and PDF publishing"
+edition = "2021"
+default-run = "folio"
+license = "GPL-2.0-or-later"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tempfile = "3"
+base64 = "0.22"
+rfd = "0.15"
+urlencoding = "2"
+fontdb = "0.23"
+sha2 = "0.10"
+arboard = { version = "3.6", default-features = false }
+
+[[bin]]
+name = "folio-render"
+path = "src/cli.rs"

@@ -1,0 +1,14 @@
+node_modules/
+dist/
+public/pdfjs/
+*.tsbuildinfo
+src-tauri/target/
+src-tauri/resources/folio-source.zip
+src-tauri/resources/bin/*
+src-tauri/resources/licenses/*
+!src-tauri/resources/licenses/README.md
+.downloads/
+test-results/
+playwright-report/
+verification/
+*.log

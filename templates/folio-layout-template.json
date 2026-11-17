@@ -1,0 +1,19 @@
+{
+  "format": "folio.layout-template",
+  "version": 1,
+  "name": "My composition",
+  "requirements": "Two columns, half-inch margins, Georgia 11 point, a thin gray rule. Keep everything else.",
+  "notes": "All lengths are in points: 72 pt = 1 inch.",
+  "changes": {
+    "columns": 2,
+    "marginTop": 36,
+    "marginBottom": 36,
+    "marginLeft": 36,
+    "marginRight": 36,
+    "bodyFont": "Georgia",
+    "fontSize": 11,
+    "rule": true,
+    "ruleWidth": 0.4,
+    "ruleColor": "#808080"
+  }
+}
