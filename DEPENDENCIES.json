@@ -1063,7 +1063,7 @@
   {
     "ecosystem": "npm",
     "name": "pdfjs-dist",
-    "version": "5.4.624",
+    "version": "5.5.207",
     "license": "Apache-2.0",
     "repository": {
       "type": "git",

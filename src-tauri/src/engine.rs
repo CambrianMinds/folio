@@ -33,6 +33,16 @@ pub(crate) fn run(
     generation: &Arc<AtomicU64>,
     id: u64,
 ) -> Result<Vec<u8>, String> {
+    run_with_diagnostics(exe, args, input, cwd, generation, id).map(|(output, _)| output)
+}
+fn run_with_diagnostics(
+    exe: &Path,
+    args: &[&str],
+    input: Option<&[u8]>,
+    cwd: &Path,
+    generation: &Arc<AtomicU64>,
+    id: u64,
+) -> Result<(Vec<u8>, String), String> {
     if generation.load(Ordering::SeqCst) != id {
         return Err("Render superseded".into());
     }
@@ -98,6 +108,13 @@ pub(crate) fn run(
         .map_err(|_| "Converter error thread failed")?
         .map_err(|e| e.to_string())?;
     if !status.success() {
+        if let Some(message) = String::from_utf8_lossy(&error)
+            .lines()
+            .find_map(|line| line.strip_prefix("error: panicked with: "))
+            .and_then(|quoted| serde_json::from_str::<String>(quoted).ok())
+        {
+            return Err(message);
+        }
         return Err(format!(
             "{}: {}",
             exe.file_stem().unwrap_or_default().to_string_lossy(),
@@ -108,7 +125,7 @@ pub(crate) fn run(
     if String::from_utf8_lossy(&error).contains("does not fit") {
         return Err(format!("Content is too wide for this layout. Reduce columns or simplify the table/code block.\n{}",String::from_utf8_lossy(&error)));
     }
-    Ok(output)
+    Ok((output, String::from_utf8_lossy(&error).into_owned()))
 }
 fn meta_text(v: &Value) -> String {
     if let Some(s) = v.as_str() {
@@ -131,7 +148,6 @@ fn sanitize(
     job: &Path,
     assets: &mut Vec<(String, Vec<u8>)>,
     warnings: &mut Vec<String>,
-    code_limit: usize,
 ) -> Result<(), String> {
     if let Some(t) = v.get("t").and_then(Value::as_str).map(str::to_owned) {
         if t == "RawBlock" || t == "RawInline" {
@@ -195,35 +211,16 @@ fn sanitize(
             assets.push((name.clone(), data));
             v["c"][2][0] = name.into();
         }
-        if t == "CodeBlock" {
-            for (index, line) in v["c"][1].as_str().unwrap_or("").lines().enumerate() {
-                let cells: usize = line
-                    .chars()
-                    .map(|ch| {
-                        if ch == '\t' {
-                            4
-                        } else if ch.is_ascii() {
-                            1
-                        } else {
-                            2
-                        }
-                    })
-                    .sum();
-                if cells > code_limit {
-                    return Err(format!("Code line {} is too long for this layout (about {} character cells per line). Add a line break, use fewer columns, or reduce the code size.",index+1,code_limit));
-                }
-            }
-        }
     }
     match v {
         Value::Array(a) => {
             for x in a {
-                sanitize(x, base, job, assets, warnings, code_limit)?;
+                sanitize(x, base, job, assets, warnings)?;
             }
         }
         Value::Object(m) => {
             for (_, x) in m {
-                sanitize(x, base, job, assets, warnings, code_limit)?;
+                sanitize(x, base, job, assets, warnings)?;
             }
         }
         _ => {}
@@ -242,12 +239,26 @@ pub fn render(
     if source.len() > 10_000_000 {
         return Err("Document exceeds the 10 MB source limit.".into());
     }
+    if let Some((index, character)) = source
+        .char_indices()
+        .find(|(_, ch)| ch.is_control() && !['\n', '\r', '\t'].contains(ch))
+    {
+        let line = source[..index]
+            .bytes()
+            .filter(|byte| *byte == b'\n')
+            .count()
+            + 1;
+        return Err(format!(
+            "Unsupported control character U+{:04X} on line {line}. Remove it before publishing.",
+            character as u32
+        ));
+    }
     let tmp = tempfile::tempdir().map_err(|e| e.to_string())?;
     let job = tmp.path();
     let json_bytes = run(
         &bin.join("pandoc.exe"),
         &[
-            "--from=markdown+raw_attribute+tex_math_dollars",
+            "--from=markdown+raw_attribute+tex_math_dollars+tex_math_single_backslash",
             "--to=json",
         ],
         Some(source.as_bytes()),
@@ -274,18 +285,10 @@ pub fn render(
         job,
         &mut assets,
         &mut warnings,
-        (((config.dimensions().0
-            - config.margin_left
-            - config.margin_right
-            - (config.columns - 1) as f64 * config.gutter)
-            / config.columns as f64
-            - 12.)
-            / (config.code_size * 0.61))
-            .max(1.) as usize,
     )?;
     // Metadata cannot supply includes, templates, raw Typst, or package imports.
     ast["meta"] = json!({});
-    let body = run(
+    let (body, diagnostics) = run_with_diagnostics(
         &bin.join("pandoc.exe"),
         &["--from=json", "--to=typst", "--wrap=none"],
         Some(&serde_json::to_vec(&ast).unwrap()),
@@ -293,6 +296,9 @@ pub fn render(
         &generation,
         id,
     )?;
+    if diagnostics.contains("Could not convert TeX math") {
+        warnings.push("Some mathematical notation could not be converted and is shown as literal TeX. Check the equations in the PDF.".into());
+    }
     let typst = template(
         config,
         &title,
@@ -325,7 +331,7 @@ pub fn render(
 pub fn template(c: &Config, title: &str, author: &str, body: &str) -> String {
     let (w, h) = c.dimensions();
     let mut t = format!(
-        "#let c = json.decode({})\n",
+        "#let c = json(bytes({}))\n",
         q(&serde_json::to_string(c).unwrap())
     );
     t.push_str(&format!(

@@ -108,7 +108,13 @@ first=next(b for b in words if b[4]=='First');second=next(b for b in words if b[
 assert first[0]<250 and second[0]>300
 assert 'Second page.' in directive_pdf[1].get_text()
 broken.write_text('```\n'+('x'*120)+'\n```',encoding='utf-8')
-assert 'too long for this layout' in render('overwide-code',{'columns':3,'fontSize':9},broken,False)
+cfg.write_text(json.dumps({'columns':3,'fontSize':9}))
+result=subprocess.run([str(CLI),str(broken),str(OUT/'overwide-code.pdf'),str(cfg)],capture_output=True,text=True)
+assert result.returncode==0,result.stderr
+wrapped=fitz.open(OUT/'overwide-code.pdf')
+assert ''.join(page.get_text().replace('\n','').replace(' ','') for page in wrapped).count('x')==120
+for page in wrapped:
+    assert all(word[0]>=56 and word[2]<=556 for word in page.get_text('words'))
 assert hashlib.sha256(source.read_bytes()).hexdigest()==before
 assert len(two)!=len(one) or one[0].get_text()!=two[0].get_text()
 (OUT/'pdf-report.json').write_text(json.dumps(report,indent=2))

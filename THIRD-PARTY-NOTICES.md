@@ -11,7 +11,7 @@ Folio is ? 2026 Justin Bogner/CambrianMinds. Folio source is licensed under GPL-
 | React / React DOM | 19.2.0 | MIT; https://github.com/facebook/react |
 | CodeMirror 6 | See package-lock.json | MIT; https://github.com/codemirror |
 | @uiw/react-codemirror | 4.25.4 | MIT; https://github.com/uiwjs/react-codemirror |
-| PDF.js | 5.4.624 | Apache-2.0; https://github.com/mozilla/pdf.js |
+| PDF.js | 5.5.207 | Apache-2.0; https://github.com/mozilla/pdf.js |
 | Zod | 4.6.7 | MIT; https://github.com/colinhacks/zod |
 | llama.cpp CPU runtime | b12445 | MIT and bundled third-party notices; https://github.com/ggml-org/llama.cpp/releases/tag/b12445 |
 | arboard | See Cargo.lock | MIT OR Apache-2.0; https://github.com/1Password/arboard |

@@ -24,6 +24,14 @@ def fixtures():
         document.save(OUT / name)
         document.close()
     (OUT / 'Corrupt.pdf').write_bytes(b'This is not a PDF.')
+    for name, label in [('Revision-one.pdf', 'REVISION_ONE'), ('Revision-two.pdf', 'REVISION_TWO')]:
+        document = fitz.open()
+        page = document.new_page()
+        page.insert_text((45, 65), label, fontsize=32)
+        # Revised PDFs can legitimately retain the same permanent trailer ID.
+        document.xref_set_key(-1, 'ID', '[<00112233445566778899AABBCCDDEEFF><00112233445566778899AABBCCDDEEFF>]')
+        document.save(OUT / name, no_new_id=True)
+        document.close()
     hashes = {name: hashlib.sha256((OUT / name).read_bytes()).hexdigest() for name in ['Report with spaces.pdf', 'Appendix \u03bb.pdf']}
     (OUT / 'source-hashes.json').write_text(json.dumps(hashes), encoding='utf-8')
 

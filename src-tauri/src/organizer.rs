@@ -192,6 +192,52 @@ pub fn export(
 mod tests {
     use super::*;
     use base64::{engine::general_purpose::STANDARD, Engine};
+    #[test]
+    fn source_rotation_and_independent_duplicate_adjustments_are_composed() {
+        let exe = crate::engine::binaries().join("qpdf/qpdf.exe");
+        let dir = tempfile::tempdir().unwrap();
+        let plain = dir.path().join("plain.pdf");
+        let rotated = dir.path().join("rotated.pdf");
+        let output = dir.path().join("output.pdf");
+        let cancel = AtomicBool::new(false);
+        fixture(&plain, "R", &[(612, 792)]);
+        job(&exe, json!({"inputFile":plain,"outputFile":rotated,"rotate":["+90:1"]}), &cancel).unwrap();
+        let source = Arc::new(import(&exe, &rotated, None, &cancel).unwrap());
+        let pages: Vec<_> = [0, 90, 180, 270].into_iter().map(|rotation| Page {
+            source_id: source.id.clone(), page_index: 0, rotation,
+        }).collect();
+        export(&exe, &[source], &pages, &output, &cancel).unwrap();
+        let pdf = inspect(&exe, &output);
+        for (index, expected) in [90, 180, 270, 0].into_iter().enumerate() {
+            let reference = pdf["pages"][index]["object"].as_str().unwrap();
+            assert_eq!(pdf["qpdf"][1][format!("obj:{reference}")]["value"]["/Rotate"].as_u64().unwrap_or(0), expected);
+        }
+        assert!(contents(&pdf).iter().all(|text| text.contains("R1")));
+    }
+    #[test]
+    fn invalid_page_references_never_create_output_or_change_sources() {
+        let exe = crate::engine::binaries().join("qpdf/qpdf.exe");
+        let dir = tempfile::tempdir().unwrap();
+        let input = dir.path().join("source.pdf");
+        let output = dir.path().join("output.pdf");
+        let cancel = AtomicBool::new(false);
+        fixture(&input, "S", &[(612, 792)]);
+        let bytes = fs::read(&input).unwrap();
+        let source = Arc::new(import(&exe, &input, None, &cancel).unwrap());
+        let invalid = [
+            Page { source_id: "missing".into(), page_index: 0, rotation: 0 },
+            Page { source_id: source.id.clone(), page_index: 1, rotation: 0 },
+            Page { source_id: source.id.clone(), page_index: 0, rotation: 45 },
+        ];
+        for page in invalid {
+            assert!(export(&exe, &[source.clone()], &[page], &output, &cancel).is_err());
+            assert!(!output.exists());
+            assert_eq!(fs::read(&input).unwrap(), bytes);
+        }
+        let page = Page { source_id: source.id.clone(), page_index: 0, rotation: 0 };
+        assert!(export(&exe, &[source], &[page], dir.path(), &cancel).is_err());
+        assert_eq!(fs::read(&input).unwrap(), bytes);
+    }
     fn fixture(path: &Path, label: &str, sizes: &[(u32, u32)]) {
         let mut objects = vec![
             "<< /Type /Catalog /Pages 2 0 R >>".to_string(),

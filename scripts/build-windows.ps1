@@ -16,6 +16,8 @@ if (!$SkipVerify) {
   Check-Exit
   & python scripts/verify-pdfs.py
   Check-Exit
+  & python scripts/verify-scenarios.py
+  Check-Exit
   & node scripts/export-templates.mjs
   & python scripts/verify-spacing.py
   Check-Exit

@@ -1,9 +1,19 @@
 import { z } from 'zod';
 const color = z.string().regex(/^#[\da-f]{6}$/i);
+const formattingText = z
+  .string()
+  .refine(
+    (value) => new TextEncoder().encode(value).length <= 2048,
+    'A formatting field is too long.',
+  )
+  .refine(
+    (value) => !/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/u.test(value),
+    'A formatting field contains an unsupported control character.',
+  );
 export const configSchema = z
   .object({
     schemaVersion: z.literal(1).default(1),
-    preset: z.string().default('Essay'),
+    preset: formattingText.default('Essay'),
     paper: z.enum(['Letter', 'A4', 'Legal', 'A5', 'Custom']).default('Letter'),
     width: z.number().min(144).max(2880).default(612),
     height: z.number().min(144).max(2880).default(792),
@@ -23,8 +33,8 @@ export const configSchema = z
     ruleColor: color.default('#9a9a94'),
     ruleInsetTop: z.number().min(0).max(720).default(0),
     ruleInsetBottom: z.number().min(0).max(720).default(0),
-    bodyFont: z.string().default('Georgia'),
-    headingFont: z.string().default('Georgia'),
+    bodyFont: formattingText.default('Georgia'),
+    headingFont: formattingText.default('Georgia'),
     fontSize: z.number().min(6).max(48).default(11),
     headingScale: z.number().min(1).max(2).default(1.25),
     leading: z.number().min(0.1).max(2).default(0.65),
@@ -35,11 +45,11 @@ export const configSchema = z
     headingColor: color.default('#283b44'),
     linkColor: color.default('#345b70'),
     pageNumbers: z.boolean().default(true),
-    header: z.string().default(''),
-    footer: z.string().default(''),
+    header: formattingText.default(''),
+    footer: formattingText.default(''),
     toc: z.boolean().default(false),
-    title: z.string().default(''),
-    author: z.string().default(''),
+    title: formattingText.default(''),
+    author: formattingText.default(''),
     fullWidthTitle: z.boolean().default(true),
     codeSize: z.number().min(5).max(24).default(8),
     figureSpacing: z.number().min(0).max(72).default(10),

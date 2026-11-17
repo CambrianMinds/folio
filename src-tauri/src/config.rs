@@ -179,6 +179,11 @@ impl Config {
             if s.len() > 2048 {
                 return Err("A formatting field is too long.".into());
             }
+            if s.chars()
+                .any(|ch| ch.is_control() && !['\n', '\r', '\t'].contains(&ch))
+            {
+                return Err("A formatting field contains an unsupported control character.".into());
+            }
         }
         if !["in", "mm", "pt"].contains(&self.units.as_str()) {
             return Err("Unknown measurement unit.".into());

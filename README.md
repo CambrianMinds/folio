@@ -102,7 +102,7 @@ Use these exact standalone comments, separated from surrounding paragraphs by bl
 <!-- folio:toc -->
 ```
 
-Use the Insert menu to add them. Ordinary Markdown, tables, fenced code, nested lists, images, footnotes, and dollar-delimited math pass through Pandoc. Raw HTML/LaTeX/Typst and arbitrary includes are intentionally omitted. The layout language is limited to the three directives above.
+Use the Insert menu to add them. Ordinary Markdown, tables, fenced code, nested lists, images, footnotes, and math using `$...$`, `$$...$$`, `\(...\)` or `\[...\]` pass through Pandoc. Unsupported math commands appear as literal TeX with a visible warning. Raw HTML/LaTeX/Typst and arbitrary includes are omitted. The layout language is limited to the three directives above.
 
 Images must be in the Markdown document's folder or a subfolder. Spaces, Unicode names and percent-encoded image references are supported. Network images and paths outside that folder are rejected. Hyperlinks survive PDF export and can open your browser when clicked in the preview. The publishing pipeline itself never fetches URLs or Typst packages.
 
@@ -150,7 +150,7 @@ For native WebView2 interaction verification, start a development build with `$e
 
 - Document-wide equal-width columns, one through four in the inspector; the validated schema supports up to six where usable. No arbitrary section layouts or full-width mid-document figures.
 - Headings H1–H6, quotes, tables, figures, code, links and footnotes receive cohesive styling. Only the useful common element controls are exposed.
-- Very wide tables, unusually long unbreakable text, and code may need fewer columns, smaller type or source line breaks. Compilation warnings about content that cannot fit become errors. Code lines exceeding a conservative column-width limit are rejected with a specific error. Inspect pages before publishing; PDF compilation alone cannot establish visual correctness for every possible Markdown document.
+- Very wide tables may need fewer columns or smaller type. Code blocks wrap using measured glyph widths inside their actual container, including lists and quotes. Inline code and long identifiers can break across lines. Wide display equations scale to the available width, so a wider layout can improve their readability. Headers and footers that exceed their margins produce a specific error. Inspect pages before publishing; PDF compilation alone cannot establish visual correctness for every possible Markdown document.
 - The title spans columns when supplied as metadata or an inspector override. A normal Markdown H1 remains a body heading.
 - Preview pages render lazily, with selectable text and hyperlink overlays. Preview navigation is deliberately compact; it is not a full PDF annotation application.
 - Preferences persist locally; unsaved edits are not automatically recovered after a machine crash.

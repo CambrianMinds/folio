@@ -7,12 +7,68 @@ import {
   sourcePages,
   splitDocument,
   type DocumentState,
+  type PageCommand,
 } from '../src/organizerModel';
 const make = (): DocumentState => ({
   pages: [0, 1, 2, 3, 4].map((i) => ({ id: `p${i}`, sourceId: 'a', pageIndex: i, rotation: 0 })),
   splitAfter: [],
 });
 describe('logical organizer document', () => {
+  it('keeps mixed edit sequences reversible without mutating prior document states', () => {
+    let history = emptyHistory();
+    let seed = 731;
+    let identity = 0;
+    const random = (max: number) => {
+      seed = (seed * 48271) % 2147483647;
+      return seed % max;
+    };
+    for (let step = 0; step < 500; step++) {
+      const previous = history.present;
+      const serialized = JSON.stringify(previous);
+      const pages = previous.pages;
+      const ids = pages
+        .filter(() => random(5) === 0)
+        .slice(0, 3)
+        .map((page) => page.id);
+      const operations: PageCommand[] = [
+        {
+          type: 'insert',
+          at: random(pages.length + 1),
+          pages: [
+            { id: `new-${identity++}`, sourceId: 'source', pageIndex: random(20), rotation: 0 },
+          ],
+        },
+        { type: 'delete', ids },
+        { type: 'rotate', ids, degrees: random(2) ? 90 : -90 },
+        { type: 'move', ids, at: random(pages.length + 1) },
+        { type: 'duplicate', ids, newIds: ids.map(() => `copy-${identity++}`) },
+        { type: 'split', after: pages[random(Math.max(1, pages.length))]?.id ?? 'absent' },
+      ];
+      const next = reduceHistory(history, operations[random(operations.length)]);
+      expect(JSON.stringify(previous)).toBe(serialized);
+      expect(new Set(next.present.pages.map((page) => page.id)).size).toBe(
+        next.present.pages.length,
+      );
+      expect(
+        next.present.pages.every(
+          (page) =>
+            page.sourceId === 'source' &&
+            page.pageIndex >= 0 &&
+            page.pageIndex < 20 &&
+            [0, 90, 180, 270].includes(page.rotation),
+        ),
+      ).toBe(true);
+      expect(
+        next.present.splitAfter.every((id) => next.present.pages.some((page) => page.id === id)),
+      ).toBe(true);
+      if (next !== history) {
+        const undone = reduceHistory(next, { type: 'undo' });
+        expect(undone.present).toEqual(previous);
+        expect(reduceHistory(undone, { type: 'redo' }).present).toEqual(next.present);
+      }
+      history = next;
+    }
+  });
   it('inserts and merges sources in selected order', () => {
     const pages = sourcePages('b', [0, 1]);
     const state = applyCommand(make(), { type: 'insert', pages, at: 2 });

@@ -104,6 +104,7 @@ export default forwardRef<OrganizerHandle, Props>(function Organizer(
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false),
     cancelImport = useRef(false);
+  const pendingImports = useRef<string[]>([]);
   const [showSources, setShowSources] = useState(true),
     [showInspector, setShowInspector] = useState(true);
   const [sourceId, setSourceId] = useState(''),
@@ -187,7 +188,13 @@ export default forwardRef<OrganizerHandle, Props>(function Organizer(
     setMessage(`Added ${source.name} · ${source.count} pages`);
   };
   const importPaths = async (requested?: string[]) => {
-    if (busyRef.current) return;
+    if (busyRef.current) {
+      if (requested?.length) {
+        pendingImports.current.push(...requested);
+        setMessage(`${pendingImports.current.length} additional PDFs queued.`);
+      }
+      return;
+    }
     busyRef.current = true;
     setBusy(true);
     cancelImport.current = false;
@@ -238,6 +245,8 @@ export default forwardRef<OrganizerHandle, Props>(function Organizer(
     } finally {
       busyRef.current = false;
       setBusy(false);
+      const queued = pendingImports.current.splice(0);
+      if (queued.length) void importPaths(queued);
     }
   };
   useImperativeHandle(ref, () => ({
@@ -280,10 +289,13 @@ export default forwardRef<OrganizerHandle, Props>(function Organizer(
     } finally {
       busyRef.current = false;
       setBusy(false);
+      const queued = pendingImports.current.splice(0);
+      if (queued.length) void importPaths(queued);
     }
   };
   const cancel = () => {
     cancelImport.current = true;
+    pendingImports.current = [];
     void call('organizer_cancel');
     setMessage('Cancelling…');
   };
@@ -370,7 +382,9 @@ export default forwardRef<OrganizerHandle, Props>(function Organizer(
     e.stopPropagation();
     dragCleanup.current();
     const handle = e.currentTarget;
-    handle.setPointerCapture(e.pointerId);
+    // The grid stays mounted when virtualization removes the original thumbnail.
+    const capture = grid.current ?? handle;
+    capture.setPointerCapture(e.pointerId);
     if (!source) setSelected(ids);
     let target: number | null = null,
       pointerY = e.clientY,
@@ -426,7 +440,9 @@ export default forwardRef<OrganizerHandle, Props>(function Organizer(
       document.removeEventListener('pointerup', finish);
       document.removeEventListener('pointercancel', abort);
       document.removeEventListener('keydown', escape);
-      if (handle.hasPointerCapture(e.pointerId)) handle.releasePointerCapture(e.pointerId);
+      window.removeEventListener('blur', abort);
+      capture.removeEventListener('lostpointercapture', abort);
+      if (capture.hasPointerCapture(e.pointerId)) capture.releasePointerCapture(e.pointerId);
       dragCleanup.current = () => {};
     };
     const finish = (event: PointerEvent) => {
@@ -456,6 +472,8 @@ export default forwardRef<OrganizerHandle, Props>(function Organizer(
     document.addEventListener('pointerup', finish);
     document.addEventListener('pointercancel', abort);
     document.addEventListener('keydown', escape);
+    window.addEventListener('blur', abort);
+    capture.addEventListener('lostpointercapture', abort);
     frame = requestAnimationFrame(scroll);
   };
   const suppressClick = useRef(false);
@@ -688,7 +706,10 @@ export default forwardRef<OrganizerHandle, Props>(function Organizer(
           tabIndex={0}
           aria-label="Output pages"
           aria-busy={busy}
-          onScroll={(e) => setViewport((v) => ({ ...v, top: e.currentTarget.scrollTop }))}
+          onScroll={(e) => {
+            const top = e.currentTarget.scrollTop;
+            setViewport((v) => ({ ...v, top }));
+          }}
         >
           {!state.pages.length ? (
             <div className="organizer-empty">

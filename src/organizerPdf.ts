@@ -35,7 +35,8 @@ export class ThumbnailCache {
     height: number,
     cancelled: () => boolean,
   ): Promise<string | null> {
-    const key = `${doc.fingerprints[0]}:${pageIndex}:${rotation}:${width}:${height}`;
+    // Revisions can share a permanent PDF ID while containing different pages.
+    const key = `${doc.loadingTask.docId}:${pageIndex}:${rotation}:${width}:${height}`;
     const cached = this.cache.get(key);
     if (cached) {
       this.cache.delete(key);
