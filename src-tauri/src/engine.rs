@@ -354,6 +354,20 @@ pub fn template(c: &Config, title: &str, author: &str, body: &str) -> String {
 mod tests {
     use super::*;
     #[test]
+    fn markdown_separator_compiles_through_the_publishing_pipeline() {
+        let rendered = render(
+            "# Separator specimen\n\nParagraph before the rule.\n\n---\n\nParagraph after the rule.\n",
+            None,
+            &Config::default(),
+            &binaries(),
+            Arc::new(AtomicU64::new(1)),
+            1,
+        )
+        .unwrap_or_else(|error| panic!("Markdown separator failed to compile: {error}"));
+        assert!(rendered.pdf.starts_with(b"%PDF-"));
+        assert!(rendered.typst.contains("#divider()"));
+    }
+    #[test]
     fn obsolete_job_starts_no_converter() {
         let result = render(
             "# Test",

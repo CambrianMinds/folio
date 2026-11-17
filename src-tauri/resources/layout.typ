@@ -47,5 +47,5 @@
 #set image(width: 100%)
 #let horizontalrule = line(length: 100%, stroke: 0.5pt + rgb(c.ruleColor))
 #let horizontalRule = horizontalrule
-#let divider = horizontalrule
+#let divider() = horizontalrule
 
