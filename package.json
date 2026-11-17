@@ -1,6 +1,9 @@
 {
   "name": "folio-desktop",
   "version": "0.2.0",
+  "description": "Local Markdown typesetting and PDF publishing for Windows",
+  "author": "Justin Bogner/CambrianMinds",
+  "license": "GPL-2.0-or-later",
   "private": true,
   "type": "module",
   "scripts": {

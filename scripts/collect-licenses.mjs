@@ -60,4 +60,6 @@ for (const p of metadata.packages) {
 writeFileSync('DEPENDENCIES.json', JSON.stringify(packages, null, 2) + '\n');
 copyFileSync('DEPENDENCIES.json', join(root, 'DEPENDENCIES.json'));
 copyFileSync('THIRD-PARTY-NOTICES.md', join(root, 'FOLIO-THIRD-PARTY-NOTICES.md'));
+copyFileSync('LICENSE', join(root, 'FOLIO-LICENSE'));
+copyFileSync('NOTICE', join(root, 'FOLIO-NOTICE'));
 console.log(`Collected notices for ${packages.length} dependencies.`);

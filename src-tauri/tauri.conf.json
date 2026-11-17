@@ -32,7 +32,10 @@
     "resources": [
       "resources/"
     ],
-    "copyright": "Folio contributors",
+    "copyright": "© 2026 Justin Bogner/CambrianMinds",
+    "publisher": "CambrianMinds",
+    "license": "GPL-2.0-or-later",
+    "licenseFile": "../LICENSE",
     "shortDescription": "Markdown, composed for the printed page.",
     "windows": {
       "webviewInstallMode": {

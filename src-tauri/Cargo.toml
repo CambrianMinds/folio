@@ -2,6 +2,7 @@
 name = "folio"
 version = "0.2.0"
 description = "Local Markdown typesetting and PDF publishing"
+authors = ["Justin Bogner/CambrianMinds"]
 edition = "2021"
 default-run = "folio"
 license = "GPL-2.0-or-later"

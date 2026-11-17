@@ -1,6 +1,6 @@
 # Third-party software
 
-Folio source is licensed under GPL-2.0-or-later. Its components retain their respective licenses. Packaging aggregates independent command-line tools; this notice does not relicense them or user's documents.
+Folio is ? 2026 Justin Bogner/CambrianMinds. Folio source is licensed under GPL-2.0-or-later. Preserve the attribution in `NOTICE` and the license text in `LICENSE` with redistributed copies. Its components retain their respective licenses. Packaging aggregates independent command-line tools; this notice does not relicense them or user's documents.
 
 | Component | Pinned version | License / source |
 | --- | --- | --- |

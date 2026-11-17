@@ -7,7 +7,7 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $directories = 'src','samples','tests','scripts','templates','.github','src-tauri/src','src-tauri/icons','src-tauri/capabilities'
 $files = @()
 foreach ($directory in $directories) { $files += Get-ChildItem -LiteralPath (Join-Path $root $directory) -File -Recurse }
-$names = 'package.json','package-lock.json','tsconfig.json','vite.config.ts','rust-toolchain.toml','.gitignore','.prettierrc.json','index.html','README.md','LICENSE','THIRD-PARTY-NOTICES.md','DEPENDENCIES.json','folio.md','src-tauri/Cargo.toml','src-tauri/Cargo.lock','src-tauri/build.rs','src-tauri/tauri.conf.json','src-tauri/resources/layout.typ','src-tauri/resources/licenses/README.md'
+$names = 'package.json','package-lock.json','tsconfig.json','vite.config.ts','rust-toolchain.toml','.gitignore','.prettierrc.json','index.html','README.md','LICENSE','NOTICE','CONTRIBUTING.md','SECURITY.md','THIRD-PARTY-NOTICES.md','DEPENDENCIES.json','folio.md','src-tauri/Cargo.toml','src-tauri/Cargo.lock','src-tauri/build.rs','src-tauri/tauri.conf.json','src-tauri/resources/layout.typ','src-tauri/resources/licenses/README.md'
 foreach ($name in $names) { $files += Get-Item -LiteralPath (Join-Path $root $name) }
 $stream = [System.IO.File]::Open($target,[System.IO.FileMode]::Create)
 $zip = New-Object System.IO.Compression.ZipArchive($stream,[System.IO.Compression.ZipArchiveMode]::Create)
