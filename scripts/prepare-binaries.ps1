@@ -20,6 +20,7 @@ foreach ($p in $packages) {
   New-Item -ItemType Directory -Force -Path $notice | Out-Null
   Get-ChildItem -LiteralPath $expanded -Recurse -File | Where-Object {$_.Name -match '^(COPYING|LICENSE|NOTICE|COPYRIGHT)'} | ForEach-Object { Copy-Item -LiteralPath $_.FullName -Destination $notice }
 }
+& $PSScriptRoot/prepare-qpdf.ps1
 # The complete GPL-covered Pandoc source accompanies every distribution.
 $source = Join-Path $licenses 'pandoc-3.10.1-source.tar.gz'
 if (!(Test-Path -LiteralPath $source)) { Invoke-WebRequest 'https://hackage.haskell.org/package/pandoc-3.10.1/pandoc-3.10.1.tar.gz' -OutFile $source -UseBasicParsing }

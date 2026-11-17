@@ -6,6 +6,7 @@ Folio is ? 2026 Justin Bogner/CambrianMinds. Folio source is licensed under GPL-
 | --- | --- | --- |
 | Pandoc | 3.10.1 | GPL-2.0-or-later; https://github.com/jgm/pandoc/releases/tag/3.10.1 |
 | Typst | 0.14.2 | Apache-2.0; https://github.com/typst/typst/releases/tag/v0.14.2 |
+| qpdf | 12.4.2 | Apache-2.0; https://github.com/qpdf/qpdf/releases/tag/v12.4.2 |
 | Tauri | See Cargo.lock | MIT OR Apache-2.0; https://github.com/tauri-apps/tauri |
 | React / React DOM | 19.2.0 | MIT; https://github.com/facebook/react |
 | CodeMirror 6 | See package-lock.json | MIT; https://github.com/codemirror |
@@ -25,5 +26,7 @@ The notice collection script copies license texts for npm dependencies and Rust 
 The complete Folio application source, lockfiles, templates and build scripts accompany the binary at `resources/folio-source.zip`. Build dependencies are identified by the lockfiles and inventory. The license texts apply to the original components as indicated in each source file or package.
 
 Folio contains no telemetry, account service or cloud publishing component.
+
+The qpdf Windows distribution includes qpdf30.dll and the GCC/MinGW runtime DLLs beside its executable in `resources/bin/qpdf/`. Its copyright notice, Apache license, GCC GPLv3 runtime license with the GCC Runtime Library Exception, and MinGW notices accompany it in `resources/licenses/qpdf/`. The unmodified runtime libraries originate from the official qpdf mingw64 distribution. Upstream source is available from https://github.com/qpdf/qpdf, https://gcc.gnu.org and https://www.mingw-w64.org.
 
 Optional language weights: Qwen3-4B-Instruct-2507 (Apache-2.0), quantized as Q4_K_M by Unsloth. Model origin: https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507 ; pinned GGUF conversion: https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/tree/a06e946bb6b655725eafa393f4a9745d460374c9 . Weights are not included in the installer or portable archive. The optional preparation script installs the weights and accompanying license separately. Runtime notices, including LLVM OpenMP, are in `resources/licenses/llama.cpp/`.

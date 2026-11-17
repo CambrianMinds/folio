@@ -17,6 +17,7 @@ export interface Variation {
   config: Config;
 }
 interface Props {
+  active?: boolean;
   config: Config;
   fonts: string[];
   source: string;
@@ -73,7 +74,7 @@ export default function Workbench(p: Props) {
   latest.current = p;
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      if (e.isComposing) return;
+      if (p.active === false || e.isComposing) return;
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
         e.preventDefault();
         setExpanded(true);
@@ -90,7 +91,7 @@ export default function Workbench(p: Props) {
     };
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
-  }, [p.undo, p.redo]);
+  }, [p.undo, p.redo, p.active]);
   useEffect(() => {
     job.current++;
     void call('cancel_fit', { id: ++fitId.current }).catch(() => {});

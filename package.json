@@ -12,6 +12,7 @@
     "tauri": "tauri",
     "test": "vitest run",
     "test:ui": "node scripts/verify-native.mjs",
+    "test:organizer": "node scripts/verify-organizer.mjs",
     "prepare:binaries": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/prepare-binaries.ps1",
     "prebuild": "node scripts/prepare-assets.mjs",
     "predev": "node scripts/prepare-assets.mjs"

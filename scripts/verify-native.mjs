@@ -18,12 +18,9 @@ const invoke = (command, args = {}) =>
     args,
   });
 const original = await invoke('load_preferences');
-const cdp = await page.context().newCDPSession(page);
-await cdp.send('Emulation.setDeviceMetricsOverride', {
+await page.setViewportSize({
   width: 1366,
   height: 768,
-  deviceScaleFactor: 1,
-  mobile: false,
 });
 const specimen = resolve('verification/Long specimen – spaces.md');
 await invoke('save_preferences', {
@@ -86,11 +83,9 @@ await page.evaluate(() =>
     value: { Logical: { width: 1920, height: 1080 } },
   }),
 );
-await cdp.send('Emulation.setDeviceMetricsOverride', {
+await page.setViewportSize({
   width: 1920,
   height: 1080,
-  deviceScaleFactor: 1,
-  mobile: false,
 });
 await page.getByLabel('Fit mode').selectOption('page');
 await page.screenshot({ path: 'verification/workspace-1920.png' });

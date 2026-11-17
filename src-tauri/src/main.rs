@@ -574,9 +574,13 @@ async fn export_template(text: String, name: String) -> Result<Option<String>, S
     .await
     .map_err(|e| e.to_string())?
 }
+mod organizer_commands;
+use organizer_commands::*;
+
 fn main() {
     tauri::Builder::default()
         .manage(Session::default())
+        .manage(OrganizerSession::default())
         .setup(|app| {
             if let Some(window) = app.get_webview_window("main") {
                 window.set_zoom(1.0)?;
@@ -584,6 +588,12 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            organizer_pick,
+            organizer_import,
+            organizer_compose,
+            organizer_release,
+            organizer_cancel,
+            organizer_export,
             open_document,
             save_document,
             render_document,

@@ -18,6 +18,37 @@ Folio saves layout settings beside your document in a `.folio.json` file. Keep b
 
 For development, see [Build on Windows x64](#build-on-windows-x64) and [Contributing](CONTRIBUTING.md). For vulnerability reporting, see [Security](SECURITY.md).
 
+## Organize PDFs
+
+Use **Compose | Organize** in the main toolbar. Both workspaces keep their current state while switching. **Send to Organize** transfers the successful current Compose preview with its layout settings. Choose Append or Start new when pages already exist. A new document is one undoable replacement. A Compose source offers **Open in Compose** with its associated Markdown snapshot.
+
+In Organize, use **Add PDFs**, Ctrl+O, or drop PDFs from Windows Explorer onto the window. Multiple imports append in picker/drop order. Sources remain available in the collapsible left panel. Select a source to add a range at any output position, or drag its pages into the grid. **Inspect** opens source-page navigation.
+
+Click thumbnails to select, Ctrl-click to toggle, and Shift-click to select a range. Drag a thumbnail or its Move handle to reorder the selected group. The insertion line identifies the destination. The inspector also offers a keyboard-accessible Move selection control. Ctrl+A selects all when the grid has focus. Range expressions such as `1-5, 8, 12-16` add to the selection using current output numbering.
+
+The page inspector rotates, duplicates, deletes and extracts selected pages. Duplicates follow the last selected page in output order. Double-click a thumbnail for a larger preview with zoom, navigation and its current rotation. Closing it preserves the grid scroll position.
+
+**Split** reveals boundary controls after thumbnails. Mark boundaries, then export the parts, or choose One PDF per page. Select an output directory. Each batch is published into a uniquely named `Folio-split-*` subfolder containing `Part-001.pdf`, `Part-002.pdf` and so on. The batch appears after every part has passed verification.
+
+**Export PDF** or Ctrl+E publishes the logical output sequence using bundled qpdf 12.4.2. Page order, dimensions, searchable text, vector graphics, embedded images and rotation are preserved without rasterizing. Sources are read-only. Export checks their availability and fingerprint, validates the result and page count, then atomically replaces the chosen destination. Existing destinations require confirmation. Imported originals cannot be export destinations. Restore a missing or changed original, or import its updated version, before exporting.
+
+Ctrl+Z undoes page operations, Ctrl+Y or Ctrl+Shift+Z redoes them, Delete removes the grid selection, and Escape clears it or closes the preview. Text fields retain their text-editing shortcuts. A Cancel control stops loading or background qpdf work before output finalization.
+
+### Organizer limits
+
+- Organizer sessions and undo history last for the current application session. Close prompts protect unexported changes. Exported PDFs can be imported again. Compose Markdown and layout saving continue to work as before.
+- Password-protected PDFs request a password. Assembly or extraction restrictions require an unrestricted copy or the owner password. Decrypted working snapshots are temporary, and exports are unencrypted.
+- Arbitrary page assembly can change or omit bookmarks, document metadata, tags, page labels, forms, signatures and other document-level structures. Page-level web links are covered by integration tests. Internal destinations and interactive structures require checking after reordering or extraction.
+- Corrupt PDFs and qpdf warnings stop the operation with the original diagnostic. The session remains intact. Repair a copy externally before importing it.
+- Thumbnail images are lazy, cached and rendered through a three-job queue. The output grid mounts visible rows with overscan. Each source's PDF data remains in memory, so image-heavy documents can consume substantial memory.
+- The larger organizer preview provides page navigation and zoom. qpdf preserves the underlying page content streams on export.
+
+### Organizer verification
+
+`npm test` covers the logical model, ranges, history and 500-page manipulation. `cargo test --locked --manifest-path src-tauri/Cargo.toml` exercises the bundled Windows qpdf, content ordering, independent duplicate rotations, vectors, mixed sizes, encryption, missing/changed sources and corrupt files. Prepare binaries first.
+
+To exercise the packaged Windows UI, install Python's `PyMuPDF`, `Pillow` and `pywinauto==0.6.9`, then run `npm run test:organizer` after building. The test launches the release executable with WebView2 remote debugging, drives real native pickers, verifies operations and Compose transfer, compares thumbnail rendering with exported pages, and writes evidence under `verification/organizer/`. Run in an interactive Windows desktop session. The test restores preferences and closes its own test window.
+
 ## Composition tools (0.2)
 
 **Describe a change…** opens the composition tools; **Ctrl Shift L** focuses the command field. Explicit requests such as “Two columns, half-inch margins, Georgia 11 point, and a thin gray rule” are parsed locally without a model. Inspect the proposed changes, then apply them as one undoable operation. Unsupported clauses and invalid geometry are rejected rather than silently ignored. **Ctrl Alt Z / Ctrl Alt Y** undo/redo layout changes independently of editor undo.

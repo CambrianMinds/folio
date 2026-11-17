@@ -10,6 +10,7 @@ import PdfPreview from './PdfPreview';
 import Workbench from './Workbench';
 import { useLayoutHistory } from './history';
 import type { Analysis } from './pdfAnalysis';
+import Organizer, { type OrganizerHandle, type ImportedPdf } from './Organizer';
 import welcome from '../samples/Welcome.md?raw';
 
 const initialLayout: Layout = {
@@ -33,6 +34,16 @@ const filename = (p: string | null) => p?.split(/[\\/]/).pop() || 'Untitled.md';
 const errorText = (e: unknown) =>
   e instanceof Error ? e.message : typeof e === 'string' ? e : JSON.stringify(e);
 export default function App() {
+  const [workspace, setWorkspace] = useState<'compose' | 'organize'>('compose');
+  const workspaceRef = useRef(workspace);
+  workspaceRef.current = workspace;
+  const organizer = useRef<OrganizerHandle>(null);
+  const [organizerDirty, setOrganizerDirty] = useState(false);
+  const organizerDirtyRef = useRef(false);
+  organizerDirtyRef.current = organizerDirty;
+  const composeSources = useRef(
+    new Map<string, { source: string; path: string | null; config: Config }>(),
+  );
   const [source, setSource] = useState(welcome),
     [path, setPath] = useState<string | null>(null),
     [saved, setSaved] = useState({ source: welcome, config: JSON.stringify(defaults) });
@@ -265,6 +276,48 @@ export default function App() {
       void call('supersede', { id: generation.current }).catch(() => {});
     };
   }, [source, path, config, loaded, renderTick]);
+  const sendToOrganize = async () => {
+    if (previewId === null || previewId !== generation.current) return;
+    let replace = false;
+    if (organizer.current?.hasPages()) {
+      const answer = await ask(
+        'Send to Organize',
+        ['Append', 'Start new', 'Cancel'],
+        'Append this Compose PDF to the current session, or start a new document. The previous pages remain available through Undo.',
+      );
+      if (answer.choice === 'Cancel') return;
+      replace = answer.choice === 'Start new';
+    }
+    try {
+      const snapshot = { source, path, config };
+      const imported = await call<ImportedPdf>('organizer_compose', {
+        id: previewId,
+        name: filename(path).replace(/\.(md|markdown)$/i, '.pdf'),
+      });
+      composeSources.current.set(imported.id, snapshot);
+      await organizer.current?.receive(imported, replace);
+      setWorkspace('organize');
+    } catch (e) {
+      report(errorText(e));
+    }
+  };
+  const openComposeSource = async (id: string) => {
+    const associated = composeSources.current.get(id);
+    if (!associated) return;
+    if (
+      associated.source === source &&
+      associated.path === path &&
+      JSON.stringify(associated.config) === JSON.stringify(config)
+    ) {
+      setWorkspace('compose');
+      return;
+    }
+    if (!(await protect())) return;
+    setSource(associated.source);
+    setPath(associated.path);
+    history.reset(associated.config);
+    setWorkspace('compose');
+  };
   const latest = previewId !== null && previewId === generation.current;
   const captureBaseline = () => {
     if (pdf && latest) setBaseline({ pdf, config: rendered.config, source: rendered.source });
@@ -304,7 +357,7 @@ export default function App() {
   actions.current = { open, save, publish, protect };
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      if (e.isComposing || !(e.ctrlKey || e.metaKey)) return;
+      if (workspaceRef.current === 'organize' || e.isComposing || !(e.ctrlKey || e.metaKey)) return;
       const k = e.key.toLowerCase();
       if (k === 's') {
         e.preventDefault();
@@ -325,7 +378,7 @@ export default function App() {
     };
     window.addEventListener('keydown', key);
     const before = (e: BeforeUnloadEvent) => {
-      if (dirtyRef.current) {
+      if (dirtyRef.current || organizerDirtyRef.current) {
         e.preventDefault();
         e.returnValue = '';
       }
@@ -342,6 +395,14 @@ export default function App() {
       if (closing.current) return;
       closing.current = true;
       try {
+        if (organizerDirtyRef.current) {
+          const result = await ask(
+            'Close the Organize session?',
+            ['Close', 'Cancel'],
+            'Unexported page changes will be lost.',
+          );
+          if (result.choice !== 'Close') return;
+        }
         if (await actions.current.protect()) {
           dirtyRef.current = false;
           await call('save_preferences', {
@@ -356,8 +417,11 @@ export default function App() {
       }
     });
     const drop = win.onDragDropEvent((e) => {
-      if (e.payload.type === 'drop' && e.payload.paths[0])
-        void actions.current.open(e.payload.paths[0]);
+      if (e.payload.type !== 'drop' || !e.payload.paths[0]) return;
+      if (workspaceRef.current === 'organize' || e.payload.paths.some((p) => /\.pdf$/i.test(p))) {
+        setWorkspace('organize');
+        void organizer.current?.importPaths(e.payload.paths);
+      } else void actions.current.open(e.payload.paths[0]);
     });
     const resize = win.onResized(async () => {
       const size = await win.innerSize();
@@ -500,15 +564,32 @@ export default function App() {
         <h1 className="wordmark">
           Folio<span className="wordmark-dot">.</span>
         </h1>
-        <div className="document-name">
+        <div className="workspace-switcher" role="group" aria-label="Workspace">
+          <button aria-pressed={workspace === 'compose'} onClick={() => setWorkspace('compose')}>
+            Compose
+          </button>
+          <button aria-pressed={workspace === 'organize'} onClick={() => setWorkspace('organize')}>
+            Organize
+          </button>
+        </div>
+        <div
+          className="document-name"
+          style={{ visibility: workspace === 'compose' ? 'visible' : 'hidden' }}
+        >
           {filename(path)}
           <span className={`save-state ${dirty ? 'changed' : ''}`}>
             {dirty ? 'Unsaved' : path ? 'Saved' : 'Sample'}
           </span>
         </div>
-        <div className="toolbar-actions">
+        <div
+          className="toolbar-actions"
+          style={{ display: workspace === 'compose' ? undefined : 'none' }}
+        >
           <button onClick={() => void open()}>Open</button>
           <button onClick={() => void save()}>Save</button>
+          <button disabled={!latest} onClick={() => void sendToOrganize()}>
+            Send to Organize
+          </button>
           <button className="primary" onClick={() => void publish('pdf')} disabled={!latest}>
             Export PDF
           </button>
@@ -555,253 +636,263 @@ export default function App() {
           </div>
         </div>
       </header>
-      <Workbench
-        config={config}
-        fonts={fonts}
-        source={source}
-        path={path}
-        pdf={pdf}
-        latest={latest}
-        apply={(next, label) => setConfig(next, label)}
-        undo={history.undo}
-        redo={history.redo}
-        canUndo={history.canUndo}
-        canRedo={history.canRedo}
-        variations={prefs.variations?.[path ?? 'untitled'] ?? {}}
-        saveVariation={(name, value) =>
-          setPrefs((old) => {
-            const all = { ...old.variations },
-              collection = { ...all[path ?? 'untitled'] };
-            if (value) collection[name] = value;
-            else delete collection[name];
-            all[path ?? 'untitled'] = collection;
-            return { ...old, variations: all };
-          })
-        }
-        guides={guides}
-        toggleGuides={() => setGuides((v) => !v)}
-        compare={compare}
-        hasBaseline={!!baseline}
-        toggleCompare={() => {
-          if (!baseline) captureBaseline();
-          setCompare((v) => !v);
-        }}
-        capture={captureBaseline}
-        analysis={analysis}
-        openPage={(page) => {
-          const view = document.querySelector('.current-preview .page-workspace');
-          view?.querySelector(`[data-page="${page}"]`)?.scrollIntoView({ block: 'start' });
-        }}
-        report={report}
-        templates={prefs.templates ?? {}}
-        saveTemplate={(name, value) =>
-          setPrefs((old) => {
-            const templates = { ...old.templates };
-            if (value) templates[name] = value;
-            else delete templates[name];
-            return { ...old, templates };
-          })
-        }
-        modelPath={prefs.modelPath ?? null}
-        onModelPath={(modelPath) => setPrefs((old) => ({ ...old, modelPath }))}
+      <Organizer
+        ref={organizer}
+        active={workspace === 'organize'}
+        ask={ask}
+        onDirty={setOrganizerDirty}
+        onCompose={(id) => void openComposeSource(id)}
       />
-      <main
-        className={`workspace ${layout.editor ? '' : 'editor-hidden'} ${layout.inspector ? '' : 'inspector-hidden'}`}
-      >
-        {layout.editor && (
-          <>
-            <section className="editor-pane" aria-label="Markdown source">
-              <div className="pane-heading">
-                <h2>Source</h2>
-                <div className="editor-actions">
-                  <details className="menu">
-                    <summary>Insert</summary>
-                    <div className="menu-popover">
-                      {[
-                        ['Page break', '\n<!-- folio:pagebreak -->\n'],
-                        ['Column break', '\n<!-- folio:columnbreak -->\n'],
-                        ['Divider', '\n---\n'],
-                        ['Contents', '\n<!-- folio:toc -->\n'],
-                        ['Footnote', '[^note]\n\n[^note]: Footnote text.\n'],
-                      ].map(([label, text]) => (
-                        <button key={label} onClick={() => insert(text)}>
-                          {label}
+      <div className="compose-shell" hidden={workspace !== 'compose'}>
+        <Workbench
+          active={workspace === 'compose'}
+          config={config}
+          fonts={fonts}
+          source={source}
+          path={path}
+          pdf={pdf}
+          latest={latest}
+          apply={(next, label) => setConfig(next, label)}
+          undo={history.undo}
+          redo={history.redo}
+          canUndo={history.canUndo}
+          canRedo={history.canRedo}
+          variations={prefs.variations?.[path ?? 'untitled'] ?? {}}
+          saveVariation={(name, value) =>
+            setPrefs((old) => {
+              const all = { ...old.variations },
+                collection = { ...all[path ?? 'untitled'] };
+              if (value) collection[name] = value;
+              else delete collection[name];
+              all[path ?? 'untitled'] = collection;
+              return { ...old, variations: all };
+            })
+          }
+          guides={guides}
+          toggleGuides={() => setGuides((v) => !v)}
+          compare={compare}
+          hasBaseline={!!baseline}
+          toggleCompare={() => {
+            if (!baseline) captureBaseline();
+            setCompare((v) => !v);
+          }}
+          capture={captureBaseline}
+          analysis={analysis}
+          openPage={(page) => {
+            const view = document.querySelector('.current-preview .page-workspace');
+            view?.querySelector(`[data-page="${page}"]`)?.scrollIntoView({ block: 'start' });
+          }}
+          report={report}
+          templates={prefs.templates ?? {}}
+          saveTemplate={(name, value) =>
+            setPrefs((old) => {
+              const templates = { ...old.templates };
+              if (value) templates[name] = value;
+              else delete templates[name];
+              return { ...old, templates };
+            })
+          }
+          modelPath={prefs.modelPath ?? null}
+          onModelPath={(modelPath) => setPrefs((old) => ({ ...old, modelPath }))}
+        />
+        <main
+          className={`workspace ${layout.editor ? '' : 'editor-hidden'} ${layout.inspector ? '' : 'inspector-hidden'}`}
+        >
+          {layout.editor && (
+            <>
+              <section className="editor-pane" aria-label="Markdown source">
+                <div className="pane-heading">
+                  <h2>Source</h2>
+                  <div className="editor-actions">
+                    <details className="menu">
+                      <summary>Insert</summary>
+                      <div className="menu-popover">
+                        {[
+                          ['Page break', '\n<!-- folio:pagebreak -->\n'],
+                          ['Column break', '\n<!-- folio:columnbreak -->\n'],
+                          ['Divider', '\n---\n'],
+                          ['Contents', '\n<!-- folio:toc -->\n'],
+                          ['Footnote', '[^note]\n\n[^note]: Footnote text.\n'],
+                        ].map(([label, text]) => (
+                          <button key={label} onClick={() => insert(text)}>
+                            {label}
+                          </button>
+                        ))}
+                        <button onClick={() => void insertImage()}>Image…</button>
+                      </div>
+                    </details>
+                    <details className="menu">
+                      <summary>View</summary>
+                      <div className="menu-popover">
+                        <button onClick={() => updateLayout({ lineNumbers: !layout.lineNumbers })}>
+                          {layout.lineNumbers ? 'Hide' : 'Show'} line numbers
                         </button>
-                      ))}
-                      <button onClick={() => void insertImage()}>Image…</button>
-                    </div>
-                  </details>
-                  <details className="menu">
-                    <summary>View</summary>
-                    <div className="menu-popover">
-                      <button onClick={() => updateLayout({ lineNumbers: !layout.lineNumbers })}>
-                        {layout.lineNumbers ? 'Hide' : 'Show'} line numbers
-                      </button>
-                      <button onClick={() => updateLayout({ wrap: !layout.wrap })}>
-                        {layout.wrap ? 'Disable' : 'Enable'} word wrap
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (editor.current?.view) openSearchPanel(editor.current.view);
-                        }}
-                      >
-                        Find & replace
-                      </button>
-                    </div>
-                  </details>
+                        <button onClick={() => updateLayout({ wrap: !layout.wrap })}>
+                          {layout.wrap ? 'Disable' : 'Enable'} word wrap
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (editor.current?.view) openSearchPanel(editor.current.view);
+                          }}
+                        >
+                          Find & replace
+                        </button>
+                      </div>
+                    </details>
+                  </div>
                 </div>
-              </div>
-              <CodeMirror
-                className="source-editor"
-                ref={editor}
-                value={source.replace(/\r\n/g, '\n')}
-                onChange={(text) =>
-                  setSource(source.includes('\r\n') ? text.replace(/\r?\n/g, '\r\n') : text)
-                }
-                height="100%"
-                extensions={editorExtensions}
-                basicSetup={{
-                  lineNumbers: layout.lineNumbers,
-                  foldGutter: false,
-                  highlightActiveLine: true,
-                  searchKeymap: true,
+                <CodeMirror
+                  className="source-editor"
+                  ref={editor}
+                  value={source.replace(/\r\n/g, '\n')}
+                  onChange={(text) =>
+                    setSource(source.includes('\r\n') ? text.replace(/\r?\n/g, '\r\n') : text)
+                  }
+                  height="100%"
+                  extensions={editorExtensions}
+                  basicSetup={{
+                    lineNumbers: layout.lineNumbers,
+                    foldGutter: false,
+                    highlightActiveLine: true,
+                    searchKeymap: true,
+                  }}
+                  aria-label="Markdown source"
+                />
+                <div className="editor-foot">
+                  <span>Markdown</span>
+                  <span>{source.trim() ? source.trim().split(/\s+/).length : 0} words</span>
+                </div>
+              </section>
+              <div
+                role="separator"
+                aria-label="Resize editor"
+                aria-orientation="vertical"
+                aria-valuenow={layout.editorWidth}
+                tabIndex={0}
+                className="splitter editor-splitter"
+                onPointerDown={(e) => resizePanel('editor', e)}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    updateLayout({
+                      editorWidth: Math.max(
+                        240,
+                        Math.min(650, layout.editorWidth + (e.key === 'ArrowRight' ? 20 : -20)),
+                      ),
+                    });
+                  }
                 }}
-                aria-label="Markdown source"
               />
-              <div className="editor-foot">
-                <span>Markdown</span>
-                <span>{source.trim() ? source.trim().split(/\s+/).length : 0} words</span>
-              </div>
-            </section>
-            <div
-              role="separator"
-              aria-label="Resize editor"
-              aria-orientation="vertical"
-              aria-valuenow={layout.editorWidth}
-              tabIndex={0}
-              className="splitter editor-splitter"
-              onPointerDown={(e) => resizePanel('editor', e)}
-              onKeyDown={(e) => {
-                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                  e.preventDefault();
-                  updateLayout({
-                    editorWidth: Math.max(
-                      240,
-                      Math.min(650, layout.editorWidth + (e.key === 'ArrowRight' ? 20 : -20)),
-                    ),
-                  });
-                }
-              }}
-            />
-          </>
-        )}
-        <div className={`preview-composition ${compare && baseline ? 'comparing' : ''}`}>
-          {compare && baseline && (
-            <div className="baseline-preview">
-              <div className="comparison-label">Before</div>
-              <PdfPreview
-                pdf={baseline.pdf}
-                zoom="page"
-                spread={false}
-                onZoom={() => {}}
-                onSpread={() => {}}
-                onError={report}
-                config={baseline.config}
-                guides={guides}
-                readOnly
-              />
-            </div>
+            </>
           )}
-          <div className="current-preview">
-            {compare && baseline && <div className="comparison-label">Current</div>}
-            <PdfPreview
-              pdf={pdf}
-              zoom={layout.zoom}
-              spread={layout.spread}
-              onZoom={(zoom) => updateLayout({ zoom })}
-              onSpread={() => updateLayout({ spread: !layout.spread })}
-              onError={report}
-              config={rendered.config}
-              guides={guides}
-              source={rendered.source}
-              fonts={fonts}
-              onAnalysis={setAnalysis}
-            />
-          </div>
-        </div>
-        {layout.inspector && (
-          <>
-            <div
-              role="separator"
-              aria-label="Resize inspector"
-              aria-orientation="vertical"
-              aria-valuenow={layout.inspectorWidth}
-              tabIndex={0}
-              className="splitter inspector-splitter"
-              onPointerDown={(e) => resizePanel('inspector', e)}
-              onKeyDown={(e) => {
-                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                  e.preventDefault();
-                  updateLayout({
-                    inspectorWidth: Math.max(
-                      260,
-                      Math.min(420, layout.inspectorWidth + (e.key === 'ArrowLeft' ? 20 : -20)),
-                    ),
-                  });
-                }
-              }}
-            />
-            <Inspector
-              config={config}
-              onChange={(patch) => setConfig((c) => ({ ...c, ...patch }))}
-              fonts={fonts}
-              presets={[...Object.keys(presets), ...Object.keys(prefs.presets)]}
-              custom={config.preset in prefs.presets}
-              onPreset={choosePreset}
-              onManage={(action) => void manage(action)}
-            />
-          </>
-        )}
-      </main>
-      {(error || documentWarning) && (
-        <div className="error-banner" role="alert">
-          <div>
-            <strong>
-              {status === 'Compilation error' ? 'Typesetting needs attention' : 'Attention'}
-            </strong>
-            <p>{error || documentWarning}</p>
-          </div>
-          <button
-            onClick={() => {
-              setError('');
-              setDocumentWarning('');
-            }}
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
-      <footer className="statusbar">
-        <span className={`status-dot ${status === 'Typesetting' ? 'working' : ''}`} />
-        <span>{status}</span>
-        {warnings.length > 0 && (
-          <details className="warnings">
-            <summary>
-              {warnings.length} note{warnings.length > 1 ? 's' : ''}
-            </summary>
-            <div>
-              {warnings.map((w) => (
-                <p key={w}>{w}</p>
-              ))}
+          <div className={`preview-composition ${compare && baseline ? 'comparing' : ''}`}>
+            {compare && baseline && (
+              <div className="baseline-preview">
+                <div className="comparison-label">Before</div>
+                <PdfPreview
+                  pdf={baseline.pdf}
+                  zoom="page"
+                  spread={false}
+                  onZoom={() => {}}
+                  onSpread={() => {}}
+                  onError={report}
+                  config={baseline.config}
+                  guides={guides}
+                  readOnly
+                />
+              </div>
+            )}
+            <div className="current-preview">
+              {compare && baseline && <div className="comparison-label">Current</div>}
+              <PdfPreview
+                pdf={pdf}
+                zoom={layout.zoom}
+                spread={layout.spread}
+                onZoom={(zoom) => updateLayout({ zoom })}
+                onSpread={() => updateLayout({ spread: !layout.spread })}
+                onError={report}
+                config={rendered.config}
+                guides={guides}
+                source={rendered.source}
+                fonts={fonts}
+                onAnalysis={setAnalysis}
+              />
             </div>
-          </details>
+          </div>
+          {layout.inspector && (
+            <>
+              <div
+                role="separator"
+                aria-label="Resize inspector"
+                aria-orientation="vertical"
+                aria-valuenow={layout.inspectorWidth}
+                tabIndex={0}
+                className="splitter inspector-splitter"
+                onPointerDown={(e) => resizePanel('inspector', e)}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    updateLayout({
+                      inspectorWidth: Math.max(
+                        260,
+                        Math.min(420, layout.inspectorWidth + (e.key === 'ArrowLeft' ? 20 : -20)),
+                      ),
+                    });
+                  }
+                }}
+              />
+              <Inspector
+                config={config}
+                onChange={(patch) => setConfig((c) => ({ ...c, ...patch }))}
+                fonts={fonts}
+                presets={[...Object.keys(presets), ...Object.keys(prefs.presets)]}
+                custom={config.preset in prefs.presets}
+                onPreset={choosePreset}
+                onManage={(action) => void manage(action)}
+              />
+            </>
+          )}
+        </main>
+        {(error || documentWarning) && (
+          <div className="error-banner" role="alert">
+            <div>
+              <strong>
+                {status === 'Compilation error' ? 'Typesetting needs attention' : 'Attention'}
+              </strong>
+              <p>{error || documentWarning}</p>
+            </div>
+            <button
+              onClick={() => {
+                setError('');
+                setDocumentWarning('');
+              }}
+            >
+              Dismiss
+            </button>
+          </div>
         )}
-        <span className="status-notice" role="status">
-          {notice}
-        </span>
-        <button onClick={refresh}>Refresh</button>
-        <span className="pipeline-label">Local typesetting · Pandoc / Typst</span>
-      </footer>
+        <footer className="statusbar">
+          <span className={`status-dot ${status === 'Typesetting' ? 'working' : ''}`} />
+          <span>{status}</span>
+          {warnings.length > 0 && (
+            <details className="warnings">
+              <summary>
+                {warnings.length} note{warnings.length > 1 ? 's' : ''}
+              </summary>
+              <div>
+                {warnings.map((w) => (
+                  <p key={w}>{w}</p>
+                ))}
+              </div>
+            </details>
+          )}
+          <span className="status-notice" role="status">
+            {notice}
+          </span>
+          <button onClick={refresh}>Refresh</button>
+          <span className="pipeline-label">Local typesetting · Pandoc / Typst</span>
+        </footer>
+      </div>
       <dialog
         ref={dialog}
         onCancel={(e) => {
@@ -820,8 +911,17 @@ export default function App() {
           {question?.text && <p>{question.text}</p>}
           {question?.value !== undefined && (
             <label className="dialog-input">
-              {question.title.includes('image') ? 'Image path' : 'Preset name'}
-              <input autoFocus value={answer} onChange={(e) => setAnswer(e.target.value)} />
+              {question.title === 'PDF password'
+                ? 'Password'
+                : question.title.includes('image')
+                  ? 'Image path'
+                  : 'Preset name'}
+              <input
+                type={question.title === 'PDF password' ? 'password' : 'text'}
+                autoFocus
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+              />
             </label>
           )}
           <div className="dialog-actions">
